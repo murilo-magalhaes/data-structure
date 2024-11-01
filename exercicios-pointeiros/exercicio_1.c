@@ -1,9 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int recebe_vetor(int *vetor, int tamanho)
+int recebe_vetor(int *vetor)
 {
-  return malloc(tamanho * sizeof(int));
+
+  int n;
+  scanf("%d", &n);
+
+  vetor = (int *)malloc(n * sizeof(int));
+
+  for (int i = 0; i < n; i++)
+  {
+    scanf("%d", vetor[i]);
+  }
+
+  return sizeof(vetor);
 }
 
 int main()
