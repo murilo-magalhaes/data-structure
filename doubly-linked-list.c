@@ -319,7 +319,7 @@ int main() {
       printf("\n------------------------------------------------------\n");
       printDecreasing(list->tail);
     } else if (option == 3) {
-      printf("\nIniciando navegação...\n");
+      printf("\nIniciando navegacao...\n");
       navigation(list);
 
 
