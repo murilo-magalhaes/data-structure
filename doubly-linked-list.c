@@ -210,7 +210,9 @@ int main() {
       printf("------------------------------------------------------\n");
       printDecreasing(list->tail);
     } else if (option == 0) {
-      puts("Programa encerrado");
+      puts("\nPrograma encerrado");
+    } else {
+      puts("\nOpcao invalida");
     }
 
   } while (option != 0);
