@@ -195,19 +195,25 @@ int main() {
   int option = 0;
 
   do {
-
     puts("\nMenu:");
     puts("0. Sair");
     puts("1. Mostrar dados em ordem crescente");
     puts("2. Mostrar dados em ordem decrescente");
 
-    scanf("%d", &option);
+    printf("Escolha uma opcao: ");
+
+    if (scanf("%d", &option) != 1) { // Se não for número, retorna erro
+      printf("\nEntrada invalida! Digite um numero.\n");
+      while (getchar() != '\n'); // Limpa o buffer de entrada
+      option = -1; // Define um valor inválido para manter o loop
+      continue;
+    }
 
     if (option == 1) {
-      printf("------------------------------------------------------\n");
+      printf("\n------------------------------------------------------\n");
       printGrowing(list->head);
     } else if (option == 2) {
-      printf("------------------------------------------------------\n");
+      printf("\n------------------------------------------------------\n");
       printDecreasing(list->tail);
     } else if (option == 0) {
       puts("\nPrograma encerrado");
