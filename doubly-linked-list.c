@@ -4,6 +4,34 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+#ifdef _WIN32
+    #include <conio.h>  // Windows: Usa _getch()
+#else
+    #include <termios.h>
+    #include <unistd.h>
+
+    struct termios oldt;  // Variável global para armazenar a configuração original do terminal
+
+void disableRawMode() {
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // Restaura o modo original do terminal
+}
+
+void enableRawMode() {
+  struct termios newt;
+  tcgetattr(STDIN_FILENO, &oldt);  // Salva as configurações atuais do terminal
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);  // Desativa entrada canônica e eco
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+  // Garante que o terminal seja restaurado ao sair do programa
+  atexit(disableRawMode);
+}
+
+int getch(void) { // Função para capturar uma tecla no Linux/macOS
+  return getchar();
+}
+#endif
+
 struct Person {
   char *name;
   char sex;
@@ -171,6 +199,80 @@ void printDecreasing(struct Node* node) {
   }
 }
 
+void printPerson(struct Person person) {
+  printf("Name: %s\n", person.name);
+  printf("Sex: %c\n", person.sex);
+  printf("Wage: %.2f\n", person.wage);
+}
+
+void clearTerminal() {
+#ifdef _WIN32
+  system("cls");  // Comando para Windows
+#else
+  system("clear"); // Comando para Linux/macOS
+#endif
+}
+
+void clearLastLines(int numLines) {
+  for (int i = 0; i < numLines; i++) {
+    printf("\033[F"); // Move o cursor para a linha anterior
+    printf("\033[K"); // Limpa a linha atual
+  }
+}
+
+void navigation(struct List* list) {
+  int ch;
+
+  printf("\nPressione as setas do teclado (ou 'q' para sair)...\n");
+
+  enableRawMode();  // Ativa o modo raw do terminal
+
+  struct Node *node = list->head;
+  int counter = 1;
+
+  printf("\nExibindo pessoa %d:\n", counter);
+  printPerson(node->person);
+
+  while (1) {
+    ch = getch(); // Captura o primeiro caractere
+
+    if (ch == 'q') { // Tecla 'q' para sair
+      printf("\nSaindo...\n");
+      break;
+    }
+
+    if (ch == 27) { // Primeiro caractere da sequência de escape (ESC)
+      if (getch() == 91) { // Segundo caractere '['
+        switch (getch()) { // Terceiro caractere identifica a seta
+          case 67:
+            if (node->next != NULL) {
+              clearLastLines(4);
+              counter++;
+              printf("Exibindo pessoa %d:\n", counter);
+              node = node->next;
+              printPerson(node->person);
+            }
+          break;
+          case 68:
+            if (node->prev != NULL) {
+              clearLastLines(4);
+              counter--;
+              printf("Exibindo pessoa %d:\n", counter);
+              node = node->prev;
+              printPerson(node->person);
+            }
+          break;
+          default:
+            printf("Outra tecla pressionada.\n");
+          break;
+        }
+      }
+    }
+  }
+
+  disableRawMode(); // Restaura o terminal antes de sair
+}
+
 int main() {
 
   FILE *file = fopen("list.txt", "r");
@@ -199,6 +301,7 @@ int main() {
     puts("0. Sair");
     puts("1. Mostrar dados em ordem crescente");
     puts("2. Mostrar dados em ordem decrescente");
+    puts("3. Navegação");
 
     printf("Escolha uma opcao: ");
 
@@ -215,6 +318,11 @@ int main() {
     } else if (option == 2) {
       printf("\n------------------------------------------------------\n");
       printDecreasing(list->tail);
+    } else if (option == 3) {
+      printf("\nIniciando navegação...\n");
+      navigation(list);
+
+
     } else if (option == 0) {
       puts("\nPrograma encerrado");
     } else {
