@@ -4,69 +4,75 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#ifdef _WIN32
-    #include <conio.h>  // Windows: Usa _getch()
-#else
-    #include <termios.h>
-    #include <unistd.h>
+// Importacoes linux
+#include <termios.h>
+#include <unistd.h>
 
-    struct termios oldt;  // Variável global para armazenar a configuração original do terminal
+struct termios oldt; // Variável global para armazenar a configuração original do terminal
 
-void disableRawMode() {
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);  // Restaura o modo original do terminal
+void disableRawMode()
+{
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Restaura o modo original do terminal
 }
 
-void enableRawMode() {
+void enableRawMode()
+{
   struct termios newt;
-  tcgetattr(STDIN_FILENO, &oldt);  // Salva as configurações atuais do terminal
+  tcgetattr(STDIN_FILENO, &oldt); // Salva as configurações atuais do terminal
   newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);  // Desativa entrada canônica e eco
+  newt.c_lflag &= ~(ICANON | ECHO); // Desativa entrada canônica e eco
   tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
   // Garante que o terminal seja restaurado ao sair do programa
   atexit(disableRawMode);
 }
 
-int getch(void) { // Função para capturar uma tecla no Linux/macOS
+int getch(void)
+{ // Função para capturar uma tecla no Linux/macOS
   return getchar();
 }
-#endif
 
-struct Person {
+struct Person
+{
   char *name;
   char sex;
   float wage;
 };
 
-struct Node {
+struct Node
+{
   struct Person person;
   struct Node *next;
   struct Node *prev;
 };
 
-struct List {
+struct List
+{
   struct Node *head;
   struct Node *tail;
 };
 
-struct List* createList() {
+struct List *createList()
+{
 
-  struct List* list = (struct List*) malloc(sizeof(struct List));
+  struct List *list = (struct List *)malloc(sizeof(struct List));
 
-  if (list == NULL) {
+  if (list == NULL)
+  {
     printf("Not possible to create a list");
   }
   list->head = NULL;
   list->tail = NULL;
 
   return list;
-
 }
 
-struct Node* createNode(const struct Person person) {
+struct Node *createNode(const struct Person person)
+{
 
-  struct Node* node = (struct Node*) malloc(sizeof(struct Node));
-  if (node == NULL) {
+  struct Node *node = (struct Node *)malloc(sizeof(struct Node));
+  if (node == NULL)
+  {
     printf("Not possible to create a node");
   }
 
@@ -75,16 +81,18 @@ struct Node* createNode(const struct Person person) {
   node->prev = NULL;
 
   return node;
-
 }
 
-char* substr(const char *str, const int start, const int len) {
+char *substr(const char *str, const int start, const int len)
+{
 
   char *dest = malloc(len * sizeof(char));
-  if (!dest) return NULL;
+  if (!dest)
+    return NULL;
 
   int currentChar = 0;
-  for (int i = start; i < start + len; i++) {
+  for (int i = start; i < start + len; i++)
+  {
     dest[currentChar] = str[i];
     currentChar++;
   }
@@ -93,13 +101,16 @@ char* substr(const char *str, const int start, const int len) {
   return dest;
 }
 
-char *strToLower(const char *str) {
+char *strToLower(const char *str)
+{
   int length = strlen(str);
   char *lowerStr = malloc((length + 1) * sizeof(char)); // Aloca espaço para a cópia
 
-  if (!lowerStr) return NULL; // Verifica erro de alocação
+  if (!lowerStr)
+    return NULL; // Verifica erro de alocação
 
-  for (int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++)
+  {
     lowerStr[i] = tolower(str[i]);
   }
   lowerStr[length] = '\0'; // Adiciona o caractere nulo
@@ -107,11 +118,13 @@ char *strToLower(const char *str) {
   return lowerStr;
 }
 
-bool isBefore(const char *str, const char *toCompare) {
+bool isBefore(const char *str, const char *toCompare)
+{
   char *strLower = strToLower(str);
   char *toCompareLower = strToLower(toCompare);
 
-  if (!strLower || !toCompareLower) { // Verifica erro de alocação
+  if (!strLower || !toCompareLower)
+  { // Verifica erro de alocação
     free(strLower);
     free(toCompareLower);
     return false;
@@ -119,8 +132,10 @@ bool isBefore(const char *str, const char *toCompare) {
 
   int minorLength = strlen(strLower) < strlen(toCompareLower) ? strlen(strLower) : strlen(toCompareLower);
 
-  for (int i = 0; i < minorLength; i++) {
-    if (strLower[i] != toCompareLower[i]) {
+  for (int i = 0; i < minorLength; i++)
+  {
+    if (strLower[i] != toCompareLower[i])
+    {
       bool result = strLower[i] < toCompareLower[i];
       free(strLower);
       free(toCompareLower);
@@ -134,22 +149,27 @@ bool isBefore(const char *str, const char *toCompare) {
   return result;
 }
 
-void insertNode(struct List* list, struct Person person) {
-  struct Node* newNode = createNode(person);
-  if (!newNode) return; // Verifica erro de alocação
+void insertNode(struct List *list, struct Person person)
+{
+  struct Node *newNode = createNode(person);
+  if (!newNode)
+    return; // Verifica erro de alocação
 
-  if (list->head == NULL) { // Lista vazia
+  if (list->head == NULL)
+  { // Lista vazia
     list->head = newNode;
     list->tail = newNode;
     return;
   }
 
-  struct Node* currentNode = list->head;
-  struct Node* previousNode = NULL;
+  struct Node *currentNode = list->head;
+  struct Node *previousNode = NULL;
 
   // Encontrar posição de inserção
-  while (currentNode != NULL) {
-    if (isBefore(person.name, currentNode->person.name)) {
+  while (currentNode != NULL)
+  {
+    if (isBefore(person.name, currentNode->person.name))
+    {
       break;
     }
     previousNode = currentNode;
@@ -157,7 +177,8 @@ void insertNode(struct List* list, struct Person person) {
   }
 
   // Inserção no início
-  if (previousNode == NULL) {
+  if (previousNode == NULL)
+  {
     newNode->next = list->head;
     list->head->prev = newNode;
     list->head = newNode;
@@ -165,7 +186,8 @@ void insertNode(struct List* list, struct Person person) {
   }
 
   // Inserção no final
-  if (currentNode == NULL) {
+  if (currentNode == NULL)
+  {
     previousNode->next = newNode;
     newNode->prev = previousNode;
     list->tail = newNode;
@@ -179,53 +201,58 @@ void insertNode(struct List* list, struct Person person) {
   currentNode->prev = newNode;
 }
 
-void printGrowing(struct Node* node) {
+void printGrowing(struct Node *node)
+{
   printf("Name: %s\n", node->person.name);
   printf("Sex: %c\n", node->person.sex);
   printf("Wage: %.2f\n", node->person.wage);
   printf("------------------------------------------------------\n");
-  if (node->next != NULL) {
+  if (node->next != NULL)
+  {
     printGrowing(node->next);
   }
 }
 
-void printDecreasing(struct Node* node) {
+void printDecreasing(struct Node *node)
+{
   printf("Name: %s\n", node->person.name);
   printf("Sex: %c\n", node->person.sex);
   printf("Wage: %.2f\n", node->person.wage);
   printf("------------------------------------------------------\n");
-  if (node->prev != NULL) {
+  if (node->prev != NULL)
+  {
     printDecreasing(node->prev);
   }
 }
 
-void printPerson(struct Person person) {
+void printPerson(struct Person person)
+{
   printf("Name: %s\n", person.name);
   printf("Sex: %c\n", person.sex);
   printf("Wage: %.2f\n", person.wage);
 }
 
-void clearTerminal() {
-#ifdef _WIN32
-  system("cls");  // Comando para Windows
-#else
-  system("clear"); // Comando para Linux/macOS
-#endif
+void clearTerminal()
+{
+  system("clear");
 }
 
-void clearLastLines(int numLines) {
-  for (int i = 0; i < numLines; i++) {
+void clearLastLines(int numLines)
+{
+  for (int i = 0; i < numLines; i++)
+  {
     printf("\033[F"); // Move o cursor para a linha anterior
     printf("\033[K"); // Limpa a linha atual
   }
 }
 
-void navigation(struct List* list) {
+void navigation(struct List *list, int total)
+{
   int ch;
 
   printf("\nPressione as setas do teclado (ou 'q' para sair)...\n");
 
-  enableRawMode();  // Ativa o modo raw do terminal
+  enableRawMode(); // Ativa o modo raw do terminal
 
   struct Node *node = list->head;
   int counter = 1;
@@ -233,37 +260,54 @@ void navigation(struct List* list) {
   printf("\nExibindo pessoa %d:\n", counter);
   printPerson(node->person);
 
-  while (1) {
+  while (1)
+  {
     ch = getch(); // Captura o primeiro caractere
 
-    if (ch == 'q') { // Tecla 'q' para sair
+    if (ch == 'q')
+    { // Tecla 'q' para sair
       printf("\nSaindo...\n");
       break;
     }
 
-    if (ch == 27) { // Primeiro caractere da sequência de escape (ESC)
-      if (getch() == 91) { // Segundo caractere '['
-        switch (getch()) { // Terceiro caractere identifica a seta
-          case 67:
-            if (node->next != NULL) {
-              clearLastLines(4);
-              counter++;
-              printf("Exibindo pessoa %d:\n", counter);
-              node = node->next;
-              printPerson(node->person);
-            }
+    if (ch == 27)
+    { // Primeiro caractere da sequência de escape (ESC)
+      if (getch() == 91)
+      { // Segundo caractere '['
+        switch (getch())
+        { // Terceiro caractere identifica a seta
+        case 67:
+          clearLastLines(4);
+          if (node->next != NULL)
+          {
+            counter++;
+            node = node->next;
+          }
+          else
+          {
+            counter = 1;
+            node = list->head;
+          }
+          printf("Exibindo pessoa %d:\n", counter);
+          printPerson(node->person);
           break;
-          case 68:
-            if (node->prev != NULL) {
-              clearLastLines(4);
-              counter--;
-              printf("Exibindo pessoa %d:\n", counter);
-              node = node->prev;
-              printPerson(node->person);
-            }
+        case 68:
+          clearLastLines(4);
+          if (node->prev != NULL)
+          {
+            counter--;
+            node = node->prev;
+          }
+          else
+          {
+            counter = total;
+            node = list->tail;
+          }
+          printf("Exibindo pessoa %d:\n", counter);
+          printPerson(node->person);
           break;
-          default:
-            printf("Outra tecla pressionada.\n");
+        default:
+          printf("Outra tecla pressionada.\n");
           break;
         }
       }
@@ -273,30 +317,37 @@ void navigation(struct List* list) {
   disableRawMode(); // Restaura o terminal antes de sair
 }
 
-int main() {
+int main()
+{
 
   FILE *file = fopen("list.txt", "r");
-  if (file == NULL) {
+  if (file == NULL)
+  {
     printf("Error opening file.\n");
   }
 
-  struct List* list = createList();
+  struct List *list = createList();
 
   char line[111];
+  int count = 0;
 
-  while(fgets(line, sizeof(line), file)) {
-    if (line[0] != '\n') {
+  while (fgets(line, sizeof(line), file))
+  {
+    if (line[0] != '\n')
+    {
       struct Person person;
-      person.name =  substr(line, 0, 100);
+      person.name = substr(line, 0, 100);
       person.sex = line[100];
       person.wage = atof(substr(line, 101, 9));
 
       insertNode(list, person);
+      count++;
     }
   }
   int option = 0;
 
-  do {
+  do
+  {
     puts("\nMenu:");
     puts("0. Sair");
     puts("1. Mostrar dados em ordem crescente");
@@ -305,27 +356,36 @@ int main() {
 
     printf("Escolha uma opcao: ");
 
-    if (scanf("%d", &option) != 1) { // Se não for número, retorna erro
+    if (scanf("%d", &option) != 1)
+    { // Se não for número, retorna erro
       printf("\nEntrada invalida! Digite um numero.\n");
-      while (getchar() != '\n'); // Limpa o buffer de entrada
+      while (getchar() != '\n')
+        ;          // Limpa o buffer de entrada
       option = -1; // Define um valor inválido para manter o loop
       continue;
     }
 
-    if (option == 1) {
+    if (option == 1)
+    {
       printf("\n------------------------------------------------------\n");
       printGrowing(list->head);
-    } else if (option == 2) {
+    }
+    else if (option == 2)
+    {
       printf("\n------------------------------------------------------\n");
       printDecreasing(list->tail);
-    } else if (option == 3) {
+    }
+    else if (option == 3)
+    {
       printf("\nIniciando navegacao...\n");
-      navigation(list);
-
-
-    } else if (option == 0) {
+      navigation(list, count);
+    }
+    else if (option == 0)
+    {
       puts("\nPrograma encerrado");
-    } else {
+    }
+    else
+    {
       puts("\nOpcao invalida");
     }
 
