@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <tgmath.h>
+#include <math.h>
 
 // Importacoes linux
 #include <termios.h>
@@ -225,11 +227,22 @@ void printDecreasing(struct Node *node)
   }
 }
 
+int countIntegerDigits(float num) {
+  int integerPart = (int)fabs(num); // Obtém a parte inteira e ignora o sinal
+  return (integerPart == 0) ? 1 : (int)log10(integerPart) + 1;
+}
+
 void printPerson(struct Person person)
 {
-  printf("Name: %s\n", person.name);
-  printf("Sex: %c\n", person.sex);
-  printf("Wage: %.2f\n", person.wage);
+  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
+  printf("| Name                                                                                                | Sex | Wage        |\n");
+  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
+  printf("| %s", person.name);
+  printf("|  %c  ", person.sex);
+  printf("| %.2f", person.wage);
+  for (int i = 0; i < 12 - (countIntegerDigits(person.wage) + 3); i++) printf(" ");
+  printf("|\n");
+  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
 }
 
 void clearTerminal()
@@ -277,7 +290,7 @@ void navigation(struct List *list, int total)
         switch (getch())
         { // Terceiro caractere identifica a seta
         case 67:
-          clearLastLines(4);
+          clearLastLines(6);
           if (node->next != NULL)
           {
             counter++;
@@ -292,7 +305,7 @@ void navigation(struct List *list, int total)
           printPerson(node->person);
           break;
         case 68:
-          clearLastLines(4);
+          clearLastLines(6);
           if (node->prev != NULL)
           {
             counter--;
