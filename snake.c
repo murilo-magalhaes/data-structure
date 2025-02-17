@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -44,6 +45,8 @@ struct List
   struct Node *tail;
 };
 
+enum Direction { UP, DOWN, LEFT, RIGHT };
+
 struct List *createList()
 {
 
@@ -52,6 +55,7 @@ struct List *createList()
   if (list == NULL)
   {
     printf("Not possible to create a list");
+    return NULL;
   }
   list->head = NULL;
   list->tail = NULL;
@@ -77,16 +81,27 @@ struct Node *createNode(const int x, const int y)
   return node;
 }
 
+void appendNode(struct List *list, struct Node *node) {
+  if (list->head == NULL) {
+    list->head = node;
+    list->tail = node;
+  } else {
+    list->tail->next = node;
+    node->prev = list->tail;
+    list->tail = node;
+  }
+}
+
 void mountSnake(struct List *list) {
-  const int initialPos[][] = {{1,3},{1,2},{1,1}};
 
   for (int i = 0; i < 3; i++) {
-    // Continuar
+    struct Node *node = createNode(1, i + 1);
+    appendNode(list, node);
   }
 
 }
 
-void clearLastLines(int numLines)
+void clearLastLines(const int numLines)
 {
   for (int i = 0; i < numLines + 3; i++)
   {
@@ -95,7 +110,14 @@ void clearLastLines(int numLines)
   }
 }
 
-void printBoard(int x, int y) {
+bool isSnakeInCoord(const struct Node *node, const int x, const int y) {
+  if (node->x == x && node->y == y) return true;
+  if(node->next != NULL) isSnakeInCoord(node->next, x, y);
+
+  return false;
+}
+
+void printBoard(const struct List *list) {
   for (int i = 0; i < ROWS; i++){
     for (int j = 0; j < COLS; j++){
       if ((i == 0 && j == 0) || (i == ROWS-1 && j == COLS-1) || (i == 0 && j == COLS-1) || (i == ROWS-1 && j == 0)) {
@@ -104,7 +126,7 @@ void printBoard(int x, int y) {
         printf("-");
       } else if (j == 0 || j == COLS-1) {
         printf("|");
-      } else if (i == y && j == x) {
+      } else if (isSnakeInCoord(list->head, j, i)) {
         printf("*");
       } else {
         printf(" ");
@@ -113,19 +135,43 @@ void printBoard(int x, int y) {
     printf("\n");
   }
 
-  printf("(%d, %d)\n", x, y);
+  printf("(%d, %d)\n", list->head->x, list->head->y);
 }
 
-void navigation(int x, int y)
-{
-  int ch;
+void moveSnake(const struct List *list, enum Direction direction) {
+  struct Node *node = list->head;
+  int x = node->x;
+  int y = node->y;
 
+  while (node != NULL) {
+
+  switch (direction) {
+    case UP:
+      node->y--;
+      break;
+    case DOWN:
+      node->y++;
+      break;
+    case LEFT:
+      node->x--;
+      break;
+    case RIGHT:
+      node->x++;
+      break;
+  }
+    printf("%d %d\n", node->x, node->y);
+    node = node->next;
+  }
+}
+
+void navigation(const struct List *list)
+{
   enableRawMode(); // Ativa o modo raw do terminal
-  printBoard(x, y);
+  printBoard(list);
 
   while (1)
   {
-    ch = getch(); // Captura o primeiro caractere
+    const int ch = getch(); // Captura o primeiro caractere
 
     if (ch == 'q')
     { // Tecla 'q' para sair
@@ -141,34 +187,34 @@ void navigation(int x, int y)
         { // Terceiro caractere identifica a seta
           case 65:
             // Seta cima
-              if(y > 1) {
+              if(list->head->y > 1) {
                 clearLastLines(ROWS);
-                y--;
-                printBoard(x, y);
+                moveSnake(list, UP);
+                printBoard(list);
               }
           break;
           case 66:
             // Seta baixo
-              if(y < ROWS - 2) {
+              if(list->head->y < ROWS - 2) {
                 clearLastLines(ROWS);
-                y++;
-                printBoard(x, y);
+                moveSnake(list, DOWN);
+                printBoard(list);
               }
           break;
           case 67:
             // Seta direita
-            if(x < COLS - 2) {
+            if(list->head->x < COLS - 2) {
               clearLastLines(ROWS);
-              x++;
-              printBoard(x, y);
+              moveSnake(list, RIGHT);
+              printBoard(list);
             }
           break;
           case 68:
             // Seta esquerda
-            if(x > 1) {
+            if(list->head->x > 1) {
               clearLastLines(ROWS);
-              x--;
-              printBoard(x, y);
+              moveSnake(list, LEFT);
+              printBoard(list);
             }
           break;
           default:
@@ -182,11 +228,25 @@ void navigation(int x, int y)
   disableRawMode(); // Restaura o terminal antes de sair
 }
 
+void printList(const struct List *list) {
+  struct Node *node = list->head;
+  while (node != NULL) {
+    printf("%d %d\n", node->x, node->y);
+    node = node->next;
+  }
+}
+
 int main() {
 
   struct List *list = createList();
+  if (list == NULL) {
+    printf("Not possible to create a list");
+    return 1;
+  }
 
-  navigation(x, y);
+  mountSnake(list);
+
+  navigation(list);
 
   free(list);
   return 0;
