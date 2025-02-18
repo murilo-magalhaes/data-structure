@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <termios.h>
 #include <unistd.h>
+#include <termios.h>
 
-const int ROWS = 10;
-const int COLS = 20;
+
+const int ROWS = 20;
+const int COLS = 100;
 
 struct termios oldt; // Variável global para armazenar a configuração original do terminal
 
@@ -94,7 +95,7 @@ void appendNode(struct List *list, struct Node *node) {
 
 void mountSnake(struct List *list) {
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 5; i++) {
     struct Node *node = createNode(1, i + 1);
     appendNode(list, node);
   }
@@ -110,9 +111,12 @@ void clearLastLines(const int numLines)
   }
 }
 
-bool isSnakeInCoord(const struct Node *node, const int x, const int y) {
-  if (node->x == x && node->y == y) return true;
-  if(node->next != NULL) isSnakeInCoord(node->next, x, y);
+bool isSnakeInCoord(const struct List *list, const int x, const int y) {
+  struct Node *node = list->head;
+  while (node != NULL) {
+    if (node->x == x && node->y == y) return true;
+    node = node->next;
+  }
 
   return false;
 }
@@ -126,8 +130,12 @@ void printBoard(const struct List *list) {
         printf("-");
       } else if (j == 0 || j == COLS-1) {
         printf("|");
-      } else if (isSnakeInCoord(list->head, j, i)) {
-        printf("*");
+      } else if (isSnakeInCoord(list, j, i)) {
+        if (list->head->x == j && list->head->y == i) {
+          printf("0");
+        } else {
+          printf("*");
+        }
       } else {
         printf(" ");
       }
@@ -139,34 +147,70 @@ void printBoard(const struct List *list) {
 }
 
 void moveSnake(const struct List *list, enum Direction direction) {
-  struct Node *node = list->head;
-  int x = node->x;
-  int y = node->y;
 
-  while (node != NULL) {
+  int prevX = list->head->x;
+  int prevY = list->head->y;
+
+  int newX = prevX, newY = prevY;
 
   switch (direction) {
     case UP:
-      node->y--;
+      if (list->head->y > 1){
+        newY = list->head->y - 1;
+      } else {
+        newY = ROWS - 2;
+      }
       break;
     case DOWN:
-      node->y++;
+      if (list->head->y < ROWS - 2) {
+        newY = list->head->y + 1;
+      } else {
+        newY = 1;
+      }
       break;
     case LEFT:
-      node->x--;
+      if (list->head->x > 1) {
+        newX = list->head->x - 1;
+      } else {
+        newX = COLS - 2;
+      }
       break;
     case RIGHT:
-      node->x++;
+      if (list->head->x < COLS - 2) {
+        newX = list->head->x + 1;
+      } else {
+        newY = 1;
+      }
       break;
   }
-    printf("%d %d\n", node->x, node->y);
+
+  if(isSnakeInCoord(list, newX, newY)) return;
+
+  list->head->x = newX;
+  list->head->y = newY;
+
+  struct Node *node = list->head->next;
+  int aux;
+
+  while (node != NULL) {
+    aux = node->x;
+    node->x = prevX;
+    prevX = aux;
+
+    aux = node->y;
+    node->y = prevY;
+    prevY = aux;
+
     node = node->next;
   }
+
+  clearLastLines(ROWS);
+  printBoard(list);
 }
 
 void navigation(const struct List *list)
 {
-  enableRawMode(); // Ativa o modo raw do terminal
+  enableRawMode();
   printBoard(list);
 
   while (1)
@@ -187,35 +231,19 @@ void navigation(const struct List *list)
         { // Terceiro caractere identifica a seta
           case 65:
             // Seta cima
-              if(list->head->y > 1) {
-                clearLastLines(ROWS);
-                moveSnake(list, UP);
-                printBoard(list);
-              }
+            moveSnake(list, UP);
           break;
           case 66:
             // Seta baixo
-              if(list->head->y < ROWS - 2) {
-                clearLastLines(ROWS);
-                moveSnake(list, DOWN);
-                printBoard(list);
-              }
+            moveSnake(list, DOWN);
           break;
           case 67:
             // Seta direita
-            if(list->head->x < COLS - 2) {
-              clearLastLines(ROWS);
-              moveSnake(list, RIGHT);
-              printBoard(list);
-            }
+            moveSnake(list, RIGHT);
           break;
           case 68:
             // Seta esquerda
-            if(list->head->x > 1) {
-              clearLastLines(ROWS);
-              moveSnake(list, LEFT);
-              printBoard(list);
-            }
+            moveSnake(list, LEFT);
           break;
           default:
             printf("Outra tecla pressionada.\n");
