@@ -7,7 +7,7 @@
 
 const int ROWS = 20;
 const int COLS = 100;
-const int VELOCITY = 3;
+const int VELOCITY = 1;
 
 struct termios oldt; // Variável global para armazenar a configuração original do terminal
 
@@ -181,7 +181,7 @@ void moveSnake(const struct List *list, enum Direction direction, int velocity) 
       if (list->head->x < COLS - 2) {
         newX = list->head->x + velocity;
       } else {
-        newY = 1;
+        newX = 1;
       }
       break;
   }
@@ -195,12 +195,29 @@ void moveSnake(const struct List *list, enum Direction direction, int velocity) 
   int aux;
 
   while (node != NULL) {
+
+    char *movingTo = "RIGHT";
+
+    if(node->x > prevX) movingTo = "LEFT";
+    if(node->y < prevY) movingTo = "DOWN";
+    if(node->y > prevY) movingTo = "UP";
+
+    //printf("Moving to: %s\n", movingTo);
+
     aux = node->x;
-    node->x = prevX - VELOCITY + 1;
+    if (movingTo == "RIGHT") {
+        node->x = prevX + VELOCITY - 1;
+    } else if (movingTo == "LEFT") {
+        node->x = prevX - VELOCITY + 1;
+    }
     prevX = aux;
 
     aux = node->y;
-    node->y = prevY - VELOCITY + 1;
+    if (movingTo == "UP") {
+        node->y = prevY + VELOCITY - 1;
+    } else if (movingTo == "DOWN") {
+        node->y = prevY - VELOCITY + 1;
+    }
     prevY = aux;
 
     node = node->next;
@@ -286,8 +303,8 @@ int main() {
 
   mountSnake(list);
 
-  // navigation(list);
-  crawlsAlone(list);
+  navigation(list);
+  // crawlsAlone(list);
 
   free(list);
   return 0;
