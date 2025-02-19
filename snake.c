@@ -7,6 +7,7 @@
 
 const int ROWS = 20;
 const int COLS = 100;
+const int VELOCITY = 3;
 
 struct termios oldt; // Variável global para armazenar a configuração original do terminal
 
@@ -131,7 +132,8 @@ void printBoard(const struct List *list) {
       } else if (j == 0 || j == COLS-1) {
         printf("|");
       } else if (isSnakeInCoord(list, j, i)) {
-        if (list->head->x == j && list->head->y == i) {
+        const bool isHead = list->head->x == j && list->head->y == i;
+        if (isHead) {
           printf("0");
         } else {
           printf("*");
@@ -146,7 +148,7 @@ void printBoard(const struct List *list) {
   printf("(%d, %d)\n", list->head->x, list->head->y);
 }
 
-void moveSnake(const struct List *list, enum Direction direction) {
+void moveSnake(const struct List *list, enum Direction direction, int velocity) {
 
   int prevX = list->head->x;
   int prevY = list->head->y;
@@ -156,28 +158,28 @@ void moveSnake(const struct List *list, enum Direction direction) {
   switch (direction) {
     case UP:
       if (list->head->y > 1){
-        newY = list->head->y - 1;
+        newY = list->head->y - velocity;
       } else {
         newY = ROWS - 2;
       }
       break;
     case DOWN:
       if (list->head->y < ROWS - 2) {
-        newY = list->head->y + 1;
+        newY = list->head->y + velocity;
       } else {
         newY = 1;
       }
       break;
     case LEFT:
       if (list->head->x > 1) {
-        newX = list->head->x - 1;
+        newX = list->head->x - velocity;
       } else {
         newX = COLS - 2;
       }
       break;
     case RIGHT:
       if (list->head->x < COLS - 2) {
-        newX = list->head->x + 1;
+        newX = list->head->x + velocity;
       } else {
         newY = 1;
       }
@@ -194,11 +196,11 @@ void moveSnake(const struct List *list, enum Direction direction) {
 
   while (node != NULL) {
     aux = node->x;
-    node->x = prevX;
+    node->x = prevX - VELOCITY + 1;
     prevX = aux;
 
     aux = node->y;
-    node->y = prevY;
+    node->y = prevY - VELOCITY + 1;
     prevY = aux;
 
     node = node->next;
@@ -231,19 +233,19 @@ void navigation(const struct List *list)
         { // Terceiro caractere identifica a seta
           case 65:
             // Seta cima
-            moveSnake(list, UP);
+            moveSnake(list, UP, VELOCITY);
           break;
           case 66:
             // Seta baixo
-            moveSnake(list, DOWN);
+            moveSnake(list, DOWN, VELOCITY);
           break;
           case 67:
             // Seta direita
-            moveSnake(list, RIGHT);
+            moveSnake(list, RIGHT, VELOCITY);
           break;
           case 68:
             // Seta esquerda
-            moveSnake(list, LEFT);
+            moveSnake(list, LEFT, VELOCITY);
           break;
           default:
             printf("Outra tecla pressionada.\n");
@@ -264,6 +266,16 @@ void printList(const struct List *list) {
   }
 }
 
+void crawlsAlone(const struct List *list) {
+
+  while (1) {
+    sleep(1);
+
+    moveSnake(list, RIGHT, VELOCITY);
+  }
+
+}
+
 int main() {
 
   struct List *list = createList();
@@ -274,7 +286,8 @@ int main() {
 
   mountSnake(list);
 
-  navigation(list);
+  // navigation(list);
+  crawlsAlone(list);
 
   free(list);
   return 0;
