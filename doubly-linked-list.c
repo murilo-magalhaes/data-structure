@@ -203,12 +203,30 @@ void insertNode(struct List *list, struct Person person)
   currentNode->prev = newNode;
 }
 
+int countIntegerDigits(float num) {
+  int integerPart = (int)fabs(num); // Obtém a parte inteira e ignora o sinal
+  return (integerPart == 0) ? 1 : (int)log10(integerPart) + 1;
+}
+
+void printHeaderTable() {
+  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
+  printf("| \033[1mName\033[0m                                                                                                | \033[1mSex\033[0m | \033[1mWage\033[0m        |\n");
+  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
+}
+
+void printPerson(struct Person person)
+{
+  printf("| %s", person.name);
+  printf("|  %c  ", person.sex);
+  printf("| %.2f", person.wage);
+  for (int i = 0; i < 12 - (countIntegerDigits(person.wage) + 3); i++) printf(" ");
+  printf("|\n");
+  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
+}
+
 void printGrowing(struct Node *node)
 {
-  printf("Name: %s\n", node->person.name);
-  printf("Sex: %c\n", node->person.sex);
-  printf("Wage: %.2f\n", node->person.wage);
-  printf("------------------------------------------------------\n");
+  printPerson(node->person);
   if (node->next != NULL)
   {
     printGrowing(node->next);
@@ -217,32 +235,11 @@ void printGrowing(struct Node *node)
 
 void printDecreasing(struct Node *node)
 {
-  printf("Name: %s\n", node->person.name);
-  printf("Sex: %c\n", node->person.sex);
-  printf("Wage: %.2f\n", node->person.wage);
-  printf("------------------------------------------------------\n");
+  printPerson(node->person);
   if (node->prev != NULL)
   {
     printDecreasing(node->prev);
   }
-}
-
-int countIntegerDigits(float num) {
-  int integerPart = (int)fabs(num); // Obtém a parte inteira e ignora o sinal
-  return (integerPart == 0) ? 1 : (int)log10(integerPart) + 1;
-}
-
-void printPerson(struct Person person)
-{
-  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
-  printf("| Name                                                                                                | Sex | Wage        |\n");
-  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
-  printf("| %s", person.name);
-  printf("|  %c  ", person.sex);
-  printf("| %.2f", person.wage);
-  for (int i = 0; i < 12 - (countIntegerDigits(person.wage) + 3); i++) printf(" ");
-  printf("|\n");
-  printf("+-----------------------------------------------------------------------------------------------------+-----+-------------+\n");
 }
 
 void clearTerminal()
@@ -271,6 +268,7 @@ void navigation(struct List *list, int total)
   int counter = 1;
 
   printf("\nExibindo pessoa %d:\n", counter);
+  printHeaderTable();
   printPerson(node->person);
 
   while (1)
@@ -302,6 +300,7 @@ void navigation(struct List *list, int total)
             node = list->head;
           }
           printf("Exibindo pessoa %d:\n", counter);
+          printHeaderTable();
           printPerson(node->person);
           break;
         case 68:
@@ -317,6 +316,7 @@ void navigation(struct List *list, int total)
             node = list->tail;
           }
           printf("Exibindo pessoa %d:\n", counter);
+          printHeaderTable();
           printPerson(node->person);
           break;
         default:
@@ -380,12 +380,12 @@ int main()
 
     if (option == 1)
     {
-      printf("\n------------------------------------------------------\n");
+      printHeaderTable();
       printGrowing(list->head);
     }
     else if (option == 2)
     {
-      printf("\n------------------------------------------------------\n");
+      printHeaderTable();
       printDecreasing(list->tail);
     }
     else if (option == 3)
